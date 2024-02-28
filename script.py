@@ -10,16 +10,9 @@ def load_word_list(file_path):
         word_list = [row[0] for row in reader]
     return word_list
 
-# Step 2: Select a Target Word
+# Modify Step 2: Select a Target Word
 def select_target_word(word_list):
     return random.choice(word_list)
-
-# Step 3: Display the Game Board
-def display_game_board(target_word, hidden=True):
-    if hidden:
-        return ['*' for _ in range(len(target_word))]
-    else:
-        return list(target_word)
 
 # Initialize Pygame
 pygame.init()
@@ -32,7 +25,7 @@ GRAY = (200, 200, 200)
 TILE_SIZE = 50
 GRID_WIDTH = 5
 GRID_HEIGHT = 6
-MARGIN = 5
+MARGIN = 10
 
 # Calculate the total width and height of the game board
 board_width = GRID_WIDTH * (TILE_SIZE + MARGIN) - MARGIN
@@ -47,35 +40,65 @@ screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption('Wordle Clone')
 
 # Function to draw the game board
-def draw_game_board(target_word):
+def draw_game_board(word_guess):
+    screen.fill(WHITE)  # Fill the screen with white
     for row in range(GRID_HEIGHT):
         for col in range(GRID_WIDTH):
             pygame.draw.rect(screen, GRAY, (board_x + col * (TILE_SIZE + MARGIN), 
                                             board_y + row * (TILE_SIZE + MARGIN), 
                                             TILE_SIZE, TILE_SIZE))
             font = pygame.font.Font(None, 36)
-            text_surface = font.render(target_word[col], True, (0, 0, 0))
-            screen.blit(text_surface, (board_x + col * (TILE_SIZE + MARGIN) + TILE_SIZE / 2 - text_surface.get_width() / 2,
-                                        board_y + row * (TILE_SIZE + MARGIN) + TILE_SIZE / 2 - text_surface.get_height() / 2))
+            if word_guess[row][col] != '':
+                text_surface = font.render(word_guess[row][col], True, (0, 0, 0))
+                screen.blit(text_surface, (board_x + col * (TILE_SIZE + MARGIN) + TILE_SIZE / 2 - text_surface.get_width() / 2,
+                                            board_y + row * (TILE_SIZE + MARGIN) + TILE_SIZE / 2 - text_surface.get_height() / 2))
 
 # Main game loop
 running = True
+word_guess = [['' for _ in range(GRID_WIDTH)] for _ in range(GRID_HEIGHT)]  # Initialize the word guess grid
 while running:
     # Handle events
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-    
-    # Fill the screen with white
-    screen.fill(WHITE)
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_RETURN:
+                # Check if the word is valid
+                guessed_word = ''.join([''.join(row) for row in word_guess])
+                if guessed_word in word_list:
+                    print("Congratulations! You guessed the word correctly:", guessed_word)
+                else:
+                    print("Sorry, the word", guessed_word, "is not valid.")
+            elif event.key == pygame.K_BACKSPACE:
+                # Handle backspace to delete a letter
+                for row in range(GRID_HEIGHT):
+                    for col in range(GRID_WIDTH - 1, -1, -1):  # Iterate through columns in reverse order
+                        if word_guess[row][col] != '':
+                            word_guess[row][col] = ''
+                            draw_game_board(word_guess)
+                            pygame.display.flip()
+                            break
+                    else:
+                        continue
+                    break
+            else:
+                # Handle typing to input letters
+                for row in range(GRID_HEIGHT):
+                    for col in range(GRID_WIDTH):
+                        if word_guess[row][col] == '':
+                            word_guess[row][col] = event.unicode.upper()
+                            draw_game_board(word_guess)
+                            pygame.display.flip()
+                            break
+                    else:
+                        continue
+                    break
     
     # Draw the game board
-    target_word = "ABCDE"  # Example target word, replace with actual target word
-    draw_game_board(target_word)
+    draw_game_board(word_guess)
     
     # Update the display
     pygame.display.flip()
-
 
 # Quit Pygame
 pygame.quit()
