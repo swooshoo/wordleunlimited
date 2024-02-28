@@ -62,19 +62,33 @@ running = True
 word_guess = [['' for _ in range(GRID_WIDTH)] for _ in range(GRID_HEIGHT)]  # Initialize the word guess grid
 while running:
     # Handle events
+    word_list = load_word_list('valid-words.csv')
+    
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_RETURN:
+                # Construct the guessed word
+                guessed_word = ''
+                for row in range(GRID_HEIGHT):
+                    for col in range(GRID_WIDTH):
+                        guessed_word += word_guess[row][col]
+                guessed_word = guessed_word.strip()  # Remove any leading or trailing whitespace
+                guessed_word = guessed_word.lower()
+                
+                # Check if the word is 5 letters
+                if len(guessed_word) != 5:
+                    print("Must be a five-letter word")
+                    break
+                
                 # Check if the word is valid
-                guessed_word = ''.join([''.join(row) for row in word_guess])
                 if guessed_word in word_list:
                     print("Congratulations! You guessed the word correctly:", guessed_word)
                 else:
                     print("Sorry, the word", guessed_word, "is not valid.")
+            # Handle backspace to delete a letter
             elif event.key == pygame.K_BACKSPACE:
-                # Handle backspace to delete a letter
                 for row in range(GRID_HEIGHT):
                     for col in range(GRID_WIDTH - 1, -1, -1):  # Iterate through columns in reverse order
                         if word_guess[row][col] != '':
@@ -85,8 +99,8 @@ while running:
                     else:
                         continue
                     break
+            # Handle typing to input letters
             else:
-                # Handle typing to input letters
                 for row in range(GRID_HEIGHT):
                     for col in range(GRID_WIDTH):
                         if word_guess[row][col] == '':
@@ -97,6 +111,7 @@ while running:
                     else:
                         continue
                     break
+
     
     # Draw the game board
     draw_game_board(word_guess)
