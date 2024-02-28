@@ -3,8 +3,12 @@ import sys
 import csv
 import random
 
+# Define word_list globally
+word_list = []
+
 # Step 1: Load the Word List
 def load_word_list(file_path):
+    global word_list  # Use the global word_list variable
     with open(file_path, 'r') as file:
         reader = csv.reader(file)
         word_list = [row[0] for row in reader]
