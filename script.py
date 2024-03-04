@@ -3,147 +3,133 @@ import sys
 import csv
 import random
 
-# Define word_list globally
+# Initialize Pygame
+pygame.init()
+
+# Define constants
+SCREEN_WIDTH = 800
+SCREEN_HEIGHT = 600
+BLACK = (0, 0, 0)
+WHITE = (255, 255, 255)
+RED = (255, 0, 0)
+YELLOW = (255, 255, 0)
+GREEN = (0, 255, 0)
+GRAY = (128, 128, 128)
+FONT_SIZE = 40
+FONT_COLOR = WHITE
+FONT = pygame.font.Font(None, FONT_SIZE)
+WORD_LIST_FILE = "valid-words.csv"
+
+# Load the word list
 word_list = []
 
-# Step 1: Load the Word List
 def load_word_list(file_path):
-    global word_list  # Use the global word_list variable
+    global word_list
     with open(file_path, 'r') as file:
         reader = csv.reader(file)
-        word_list = [row[0] for row in reader]
-    return word_list
+        word_list = [row[0].strip().upper() for row in reader]
 
-# Modify Step 2: Select a Target Word
-def select_target_word(word_list):
-    return random.choice(word_list)
+load_word_list(WORD_LIST_FILE)
 
-# Function to handle the game logic
-def play_wordle():
-    # Initialize Pygame
-    pygame.init()
+# Set up the screen
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+pygame.display.set_caption('Wordle Unlimited')
 
-    # Define constants
-    SCREEN_WIDTH = 400
-    SCREEN_HEIGHT = 400
-    WHITE = (255, 255, 255)
-    GRAY = (200, 200, 200)
-    GREEN = (97, 139, 85)
-    YELLOW = (178, 159, 77)
-    TILE_SIZE = 50
-    GRID_WIDTH = 5
-    GRID_HEIGHT = 6
-    MARGIN = 10
+# Function to draw the game board
+def draw_game_board(guesses, guess, current_attempt, target_word):
+    screen.fill(BLACK)
 
-    # Calculate the total width and height of the game board
-    board_width = GRID_WIDTH * (TILE_SIZE + MARGIN) - MARGIN
-    board_height = GRID_HEIGHT * (TILE_SIZE + MARGIN) - MARGIN
+    # Draw grid
+    tile_size = 80
+    margin = 10
+    grid_width = 5
+    grid_height = 6
+    for row in range(grid_height):
+        for col in range(grid_width):
+            pygame.draw.rect(screen, WHITE, (margin + col * (tile_size + margin), margin + row * (tile_size + margin), tile_size, tile_size), 2)
 
-    # Calculate the position of the top-left corner of the game board to center it on the screen
-    board_x = (SCREEN_WIDTH - board_width) // 2
-    board_y = (SCREEN_HEIGHT - board_height) // 2
+    # Draw guesses
+    for i, word in enumerate(guesses):
+        for j, letter in enumerate(word):
+            color = WHITE
+            if letter in target_word:
+                if letter == target_word[j]:
+                    color = GREEN  # Correct letter
+                else:
+                    color = YELLOW  # Misplaced letter
+            else:
+                color = RED  # Incorrect letter
+            letter_text = FONT.render(letter, True, color)
+            screen.blit(letter_text, (margin + j * (tile_size + margin) + tile_size // 2 - letter_text.get_width() // 2, margin + i * (tile_size + margin) + tile_size // 2 - letter_text.get_height() // 2))
 
-    # Set up the screen
-    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-    pygame.display.set_caption('Wordle Clone')
+    # Draw current guess
+    if guess:
+        for j, letter in enumerate(guess):
+            if letter:
+                color = WHITE
+                if letter in target_word:
+                    if letter == target_word[j]:
+                        color = GREEN  # Correct letter
+                    else:
+                        color = YELLOW  # Misplaced letter
+                else:
+                    color = RED  # Incorrect letter
+                letter_text = FONT.render(letter, True, WHITE)
+                screen.blit(letter_text, (margin + j * (tile_size + margin) + tile_size // 2 - letter_text.get_width() // 2, margin + (current_attempt - 1) * (tile_size + margin) + tile_size // 2 - letter_text.get_height() // 2))
 
-    # Function to draw the game board
-    def draw_game_board(word_guess):
-        screen.fill(WHITE)  # Fill the screen with white
-        for row in range(GRID_HEIGHT):
-            for col in range(GRID_WIDTH):
-                pygame.draw.rect(screen, GRAY, (board_x + col * (TILE_SIZE + MARGIN), 
-                                                board_y + row * (TILE_SIZE + MARGIN), 
-                                                TILE_SIZE, TILE_SIZE))
-                font = pygame.font.Font(None, 36)
-                if word_guess[row][col] != '':
-                    text_surface = font.render(word_guess[row][col], True, (0, 0, 0))
-                    screen.blit(text_surface, (board_x + col * (TILE_SIZE + MARGIN) + TILE_SIZE / 2 - text_surface.get_width() / 2,
-                                                board_y + row * (TILE_SIZE + MARGIN) + TILE_SIZE / 2 - text_surface.get_height() / 2))
+    # Draw attempts left
+    attempts_text = FONT.render(f"Attempts Left: {attempts - current_attempt + 1}", True, FONT_COLOR)
+    attempts_text_rect = attempts_text.get_rect()
+    attempts_text_rect.topright = (SCREEN_WIDTH - 20, SCREEN_HEIGHT // 2)
+    screen.blit(attempts_text, attempts_text_rect)
 
-    word_list = load_word_list('valid-words.csv')
-    target_word = select_target_word(word_list)
+# Main game loop
+running = True
+while running:
+    # Select a new target word for each play
+    target_word = random.choice(word_list)
+    print("Target Word:", target_word)  # Print the target word in the terminal
 
-    print(target_word)
-    # Main game loop
-    running = True
-    word_guess = [['' for _ in range(GRID_WIDTH)] for _ in range(GRID_HEIGHT)]  # Initialize the word guess grid
-    while running:
-        # Handle events
+    # Initialize game variables
+    attempts = 6
+    current_attempt = 1
+    guesses = []
+    guess = ['' for _ in range(5)]  # Define the guess variable
+
+    while current_attempt <= attempts:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
             elif event.type == pygame.KEYDOWN:
+                # Handle key presses here
                 if event.key == pygame.K_RETURN:
-                    # Construct the guessed word
-                    guessed_word = ''
-                    for row in range(GRID_HEIGHT):
-                        for col in range(GRID_WIDTH):
-                            guessed_word += word_guess[row][col]
-                    guessed_word = guessed_word.strip().lower()  # Remove any leading or trailing whitespace and convert to lowercase
-                    
-                    # Check if the word is 5 letters
-                    if len(guessed_word) != 5:
-                        print("Must be a five-letter word")
-                        break
-                    
-                    # Check if the word is valid
-                    if guessed_word in word_list:
-                        print("Guess is in word_list")
-                        # Check each letter in the guessed word and update the colors of the tiles accordingly
-                        for row in range(GRID_HEIGHT):
-                            for col, letter in enumerate(guessed_word):
-                                # Initialize color variable
-                                color = None
-                                if letter == target_word[col]:
-                                    # Turn the tile green if the letter is in the right slot
-                                    color = GREEN
-                                elif letter in target_word:
-                                    # Turn the tile yellow if the letter is in the target word but not in the right slot
-                                    color = YELLOW
-                                else:
-                                    # Leave the tile gray if the letter is not in the target word at all
-                                    color = GRAY
-                                # Update the color of the corresponding tile
-                                pygame.draw.rect(screen, color, (board_x + col * (TILE_SIZE + MARGIN), board_y + row * (TILE_SIZE + MARGIN), TILE_SIZE, TILE_SIZE))
-                        pygame.display.flip()  # Update the display after setting tile colors
-                    else:
-                        print("Sorry, the word", guessed_word, "is not valid.")
-
-                # Handle backspace to delete a letter
+                    # Check if the guess is valid
+                    guess_word = ''.join(guess)
+                    if guess_word in word_list:
+                        # Check if the guess is correct
+                        if guess_word == target_word:
+                            print("You guessed the word correctly!")
+                            current_attempt = attempts + 1  # End the current play
+                        else:
+                            # Handle incorrect guess
+                            guesses.append(guess)
+                            current_attempt += 1
+                            guess = ['' for _ in range(5)]  # Reset the guess
                 elif event.key == pygame.K_BACKSPACE:
-                    for row in range(GRID_HEIGHT):
-                        for col in range(GRID_WIDTH - 1, -1, -1):  # Iterate through columns in reverse order
-                            if word_guess[row][col] != '':
-                                word_guess[row][col] = ''
-                                draw_game_board(word_guess)
-                                pygame.display.flip()
-                                break
-                        else:
-                            continue
-                        break
-                # Handle typing to input letters
-                else:
-                    for row in range(GRID_HEIGHT):
-                        for col in range(GRID_WIDTH):
-                            if word_guess[row][col] == '':
-                                word_guess[row][col] = event.unicode.upper()
-                                draw_game_board(word_guess)
-                                pygame.display.flip()
-                                break
-                        else:
-                            continue
-                        break
+                    # Delete the last letter in the current guess
+                    for i in range(len(guess) - 1, -1, -1):
+                        if guess[i]:
+                            guess[i] = ''
+                            break
+                elif event.key in range(pygame.K_a, pygame.K_z + 1):
+                    # Add the pressed key to the guess
+                    index = len([l for l in guess if l])  # Get the index of the next empty slot in the guess
+                    if index < 5:
+                        guess[index] = chr(event.key).upper()
 
         # Draw the game board
-        draw_game_board(word_guess)
-        
-        # Update the display
+        draw_game_board(guesses, guess, current_attempt, target_word)
         pygame.display.flip()
 
-    # Quit Pygame
-    pygame.quit()
-    sys.exit()
-
-if __name__ == "__main__":
-    play_wordle()
+pygame.quit()
+sys.exit()
