@@ -37,7 +37,10 @@ pygame.display.set_caption('Wordle Unlimited')
 
 # Define variables for message display
 display_message = None
-message_duration = 360  # Duration in frames (assuming 60 frames per second)
+message_duration = 420  # Duration in frames (assuming 60 frames per second)
+
+# Messages for when the guess matches the target word
+success_messages = ["Nicely done.", "YIPPEE!", "Exemplary.", "BINGPOT!", "Damn straight."]
 
 # Function to draw the game board
 def draw_game_board(guesses, guess, current_attempt, target_word, letter_color):
@@ -103,7 +106,7 @@ while running:
                     if guess_word in word_list:
                         # Check if the guess is correct
                         if guess_word == target_word:
-                            display_message = "Nicely done."
+                            display_message = random.choice(success_messages)
                             current_attempt = attempts + 1  # End the current play
                         else:
                             # Handle incorrect guess
@@ -134,9 +137,12 @@ while running:
             message_duration -= 1
             if message_duration <= 0:
                 display_message = None
-                message_duration = 360  # Reset message duration
+                message_duration = 420  # Reset message duration
 
         pygame.display.flip()
-
+    # If all attempts are used and word is not guessed correctly
+    if current_attempt > attempts and guess_word != target_word:
+        display_message = f"Word was {target_word}."
+        
 pygame.quit()
 sys.exit()
