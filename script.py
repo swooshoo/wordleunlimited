@@ -72,12 +72,13 @@ def draw_game_board(guesses, guess, current_attempt, target_word, letter_color):
                 pygame.draw.rect(screen, color, (margin + j * (tile_size + margin), margin + (current_attempt - 1) * (tile_size + margin), tile_size, tile_size))
                 screen.blit(letter_text, (margin + j * (tile_size + margin) + tile_size // 2 - letter_text.get_width() // 2, margin + (current_attempt - 1) * (tile_size + margin) + tile_size // 2 - letter_text.get_height() // 2))
 
+
     # Draw attempts left
     attempts_text = FONT.render(f"Attempts Left: {attempts - current_attempt + 1}", True, FONT_COLOR)
     attempts_text_rect = attempts_text.get_rect()
     attempts_text_rect.topright = (SCREEN_WIDTH - 20, SCREEN_HEIGHT // 2)
     screen.blit(attempts_text, attempts_text_rect)
-
+    
 # Main game loop
 running = True
 while running:
