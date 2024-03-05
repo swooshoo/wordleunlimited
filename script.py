@@ -7,7 +7,7 @@ import random
 pygame.init()
 
 # Define constants
-SCREEN_WIDTH = 800
+SCREEN_WIDTH = 463
 SCREEN_HEIGHT = 600
 BLACK = (18, 18, 19)
 WHITE = (216, 218, 220)
@@ -34,6 +34,10 @@ load_word_list(WORD_LIST_FILE)
 # Set up the screen
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption('Wordle Unlimited')
+
+# Define variables for message display
+display_message = None
+message_duration = 360  # Duration in frames (assuming 60 frames per second)
 
 # Function to draw the game board
 def draw_game_board(guesses, guess, current_attempt, target_word, letter_color):
@@ -72,13 +76,6 @@ def draw_game_board(guesses, guess, current_attempt, target_word, letter_color):
                 pygame.draw.rect(screen, color, (margin + j * (tile_size + margin), margin + (current_attempt - 1) * (tile_size + margin), tile_size, tile_size))
                 screen.blit(letter_text, (margin + j * (tile_size + margin) + tile_size // 2 - letter_text.get_width() // 2, margin + (current_attempt - 1) * (tile_size + margin) + tile_size // 2 - letter_text.get_height() // 2))
 
-
-    # Draw attempts left
-    attempts_text = FONT.render(f"Attempts Left: {attempts - current_attempt + 1}", True, FONT_COLOR)
-    attempts_text_rect = attempts_text.get_rect()
-    attempts_text_rect.topright = (SCREEN_WIDTH - 20, SCREEN_HEIGHT // 2)
-    screen.blit(attempts_text, attempts_text_rect)
-    
 # Main game loop
 running = True
 while running:
@@ -93,6 +90,9 @@ while running:
     guess = ['' for _ in range(5)]  # Define the guess variable
 
     while current_attempt <= attempts:
+        # Define guess_word outside the event handling block
+        guess_word = ''.join(guess)
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -100,17 +100,18 @@ while running:
                 # Handle key presses here
                 if event.key == pygame.K_RETURN:
                     # Check if the guess is valid
-                    guess_word = ''.join(guess)
                     if guess_word in word_list:
                         # Check if the guess is correct
                         if guess_word == target_word:
-                            print("You guessed the word correctly!")
+                            display_message = "Nicely done."
                             current_attempt = attempts + 1  # End the current play
                         else:
                             # Handle incorrect guess
                             guesses.append(guess)
                             current_attempt += 1
-                            guess = ['' for _ in range(5)]  # Reset the guess
+                            guess = ['' for _ in range(5)]  # Reset the guess 
+                    else:
+                        display_message = "Invalid word."
                 elif event.key == pygame.K_BACKSPACE:
                     # Delete the last letter in the current guess
                     for i in range(len(guess) - 1, -1, -1):
@@ -125,6 +126,16 @@ while running:
 
         # Draw the game board with custom letter color (in this case, white)
         draw_game_board(guesses, guess, current_attempt, target_word, WHITE)
+
+        # Draw message below the grid
+        if display_message:
+            message_text = FONT.render(display_message, True, WHITE)
+            screen.blit(message_text, (SCREEN_WIDTH // 2 - message_text.get_width() // 2, SCREEN_HEIGHT - message_text.get_height() - 10))
+            message_duration -= 1
+            if message_duration <= 0:
+                display_message = None
+                message_duration = 360  # Reset message duration
+
         pygame.display.flip()
 
 pygame.quit()
