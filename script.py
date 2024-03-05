@@ -9,12 +9,12 @@ pygame.init()
 # Define constants
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
-BLACK = (0, 0, 0)
-WHITE = (255, 255, 255)
+BLACK = (18, 18, 19)
+WHITE = (216, 218, 220)
 RED = (255, 0, 0)
-YELLOW = (255, 255, 0)
-GREEN = (0, 255, 0)
-GRAY = (128, 128, 128)
+YELLOW = (178, 159, 77)
+GREEN = (97, 139, 85)
+GRAY = (58, 58, 60)
 FONT_SIZE = 40
 FONT_COLOR = WHITE
 FONT = pygame.font.Font(None, FONT_SIZE)
@@ -36,7 +36,7 @@ screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption('Wordle Unlimited')
 
 # Function to draw the game board
-def draw_game_board(guesses, guess, current_attempt, target_word):
+def draw_game_board(guesses, guess, current_attempt, target_word, letter_color):
     screen.fill(BLACK)
 
     # Draw grid
@@ -46,7 +46,7 @@ def draw_game_board(guesses, guess, current_attempt, target_word):
     grid_height = 6
     for row in range(grid_height):
         for col in range(grid_width):
-            pygame.draw.rect(screen, WHITE, (margin + col * (tile_size + margin), margin + row * (tile_size + margin), tile_size, tile_size), 2)
+            pygame.draw.rect(screen, GRAY, (margin + col * (tile_size + margin), margin + row * (tile_size + margin), tile_size, tile_size), 2)
 
     # Draw guesses
     for i, word in enumerate(guesses):
@@ -58,23 +58,18 @@ def draw_game_board(guesses, guess, current_attempt, target_word):
                 else:
                     color = YELLOW  # Misplaced letter
             else:
-                color = RED  # Incorrect letter
-            letter_text = FONT.render(letter, True, color)
+                color = GRAY  # Incorrect letter
+            pygame.draw.rect(screen, color, (margin + j * (tile_size + margin), margin + i * (tile_size + margin), tile_size, tile_size))
+            letter_text = FONT.render(letter, True, letter_color)
             screen.blit(letter_text, (margin + j * (tile_size + margin) + tile_size // 2 - letter_text.get_width() // 2, margin + i * (tile_size + margin) + tile_size // 2 - letter_text.get_height() // 2))
 
     # Draw current guess
     if guess:
         for j, letter in enumerate(guess):
             if letter:
-                color = WHITE
-                if letter in target_word:
-                    if letter == target_word[j]:
-                        color = GREEN  # Correct letter
-                    else:
-                        color = YELLOW  # Misplaced letter
-                else:
-                    color = RED  # Incorrect letter
-                letter_text = FONT.render(letter, True, WHITE)
+                color = GRAY
+                letter_text = FONT.render(letter, True, letter_color)
+                pygame.draw.rect(screen, color, (margin + j * (tile_size + margin), margin + (current_attempt - 1) * (tile_size + margin), tile_size, tile_size))
                 screen.blit(letter_text, (margin + j * (tile_size + margin) + tile_size // 2 - letter_text.get_width() // 2, margin + (current_attempt - 1) * (tile_size + margin) + tile_size // 2 - letter_text.get_height() // 2))
 
     # Draw attempts left
@@ -127,8 +122,8 @@ while running:
                     if index < 5:
                         guess[index] = chr(event.key).upper()
 
-        # Draw the game board
-        draw_game_board(guesses, guess, current_attempt, target_word)
+        # Draw the game board with custom letter color (in this case, white)
+        draw_game_board(guesses, guess, current_attempt, target_word, WHITE)
         pygame.display.flip()
 
 pygame.quit()
