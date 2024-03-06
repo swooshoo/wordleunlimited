@@ -31,9 +31,11 @@ def load_word_list(file_path):
 
 load_word_list(WORD_LIST_FILE)
 
-# Set up the screen
+# Set up the screen and logo
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption('Wordle Unlimited')
+icon = pygame.image.load("icon.png")
+pygame.display.set_icon(icon)
 
 # Define variables for message display
 display_message = None
@@ -113,7 +115,7 @@ while running:
                             guesses.append(guess)
                             current_attempt += 1
                             guess = ['' for _ in range(5)]  # Reset the guess 
-                    else:
+                    else:   
                         display_message = "Invalid word"
                 elif event.key == pygame.K_BACKSPACE:
                     # Delete the last letter in the current guess
