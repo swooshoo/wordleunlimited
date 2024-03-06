@@ -114,7 +114,7 @@ while running:
                             current_attempt += 1
                             guess = ['' for _ in range(5)]  # Reset the guess 
                     else:
-                        display_message = "Invalid word."
+                        display_message = "Invalid word"
                 elif event.key == pygame.K_BACKSPACE:
                     # Delete the last letter in the current guess
                     for i in range(len(guess) - 1, -1, -1):
@@ -142,7 +142,7 @@ while running:
         pygame.display.flip()
     # If all attempts are used and word is not guessed correctly
     if current_attempt > attempts and guess_word != target_word:
-        display_message = f"Word was {target_word}."
+        display_message = f"Word was {target_word}"
         
 pygame.quit()
 sys.exit()
