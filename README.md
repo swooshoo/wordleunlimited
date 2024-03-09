@@ -1,6 +1,6 @@
 Wordle Unlimited
 
-I love wordle and there exists a [wordle unlimited](https://wordleunlimited.org/) but there is a problems:
+I love wordle and there exists a [wordle unlimited](https://wordleunlimited.org/) but there is a problem:
 
 it requires I physically click with my mouse to play the next solve (I would prefer keeping both my hands on the keyboards while I play Wordle)
 
